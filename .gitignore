@@ -1,0 +1,20 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+
+# 凭据：绝不能提交
+.env
+
+# 本地数据与临时文件
+data/
+temp/
+
+# AI 助手的项目记忆（本地笔记，不进版本库）
+.workbuddy/

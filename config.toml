@@ -1,0 +1,39 @@
+# AI_Teacher 配置文件
+# API key 请写在项目根目录的 .env 里（AI_TEACHER_API_KEY=...），不要写在这里。
+# 直接改这个文件后，运行中的程序重启即生效。
+
+goal = "刷 LeetCode"
+monitor_camera = true
+upload_camera = true
+headless_notify = false
+
+[capture]
+compose_width = 640
+jpeg_quality = 60
+camera_ratio = 0.28
+camera_index = 0
+diff_width = 160
+diff_threshold = 6.0
+
+[rules]
+idle_soft_s = 180.0
+idle_hard_s = 600.0
+face_min_ratio = 0.02
+absence_confirm = 3
+
+[judge]
+strikes_to_warn = 2
+grace_period_s = 180.0
+alert_cooldown_s = 300.0
+interval_min_s = 60.0
+interval_max_s = 300.0
+interval_grow_after = 2
+focus_ewma_alpha = 0.4
+focus_healthy_ratio = 0.7
+focus_bad_ratio = 0.4
+
+[pomodoro]
+enabled = true
+focus_minutes = 40.0
+break_minutes = 10.0
+notify = true
