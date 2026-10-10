@@ -146,6 +146,36 @@ finish_reason: 'length'   completion_tokens: 48   reasoning_tokens: 48
 
 只改内存值，不动线程、不重置统计、不重建摄像头。空白与重复的目标会被忽略。
 
+## 换模型服务：任何 OpenAI 兼容端点都行
+
+只改 `base_url` + `model` 即可，支持 DeepSeek、Moonshot、通义千问、本地 Ollama、自建网关等。
+
+```bash
+uv run ai-teacher provider                                  # 查看当前配置
+uv run ai-teacher provider set --url https://api.moonshot.cn/v1 --model kimi-k2-5
+uv run ai-teacher provider set --url http://localhost:11434/v1 --model qwen2.5vl:7b
+uv run ai-teacher provider reset                            # 恢复 DeepSeek 默认
+```
+
+配置写入项目根目录的 `.env`（API key 也在那里，不会进版本库）。
+
+| 参数 | 说明 |
+|---|---|
+| `AI_TEACHER_BASE_URL` | 端点，代码不加工，原样使用 |
+| `AI_TEACHER_MODEL` | 模型名 |
+| `AI_TEACHER_THINKING` | `auto`（默认）/ `disable` / `omit` |
+
+**为什么需要 `thinking` 开关**：DeepSeek 的 `thinking` 参数是它**独有**的扩展字段，其他 OpenAI 兼容服务不认识，硬发会返回 400。所以默认按域名+模型名自动判断——**只有 DeepSeek 才发**。
+
+判断会同时看 `base_url` 和 `model`，因为用自建网关（one-api / new-api 等）转发 DeepSeek 时域名不是 `deepseek.com`，但模型仍是 `deepseek-flash`，这时**必须**关思考否则会出 `bad_json`。
+
+| 服务 | thinking 参数 | JSON Output |
+|---|---|---|
+| DeepSeek | ✅ 发（关思考） | ✅ |
+| 其他 OpenAI 兼容 | ❌ 不发 | ✅ |
+
+> **费用仍按 DeepSeek 价目表估算**——`provider` 命令只切换调用端点，不会改成本公式。如果你换成了别的服务商，实际账单以其官方价格为准。
+
 ## 命令
 
 | 命令 | 说明 |
@@ -159,8 +189,9 @@ finish_reason: 'length'   completion_tokens: 48   reasoning_tokens: 48
 | `uv run ai-teacher cost` | 打印单次判定的成本估算 |
 | `uv run ai-teacher report` | 查看最近一次会话的完整报告（可加会话编号） |
 | `uv run ai-teacher pomodoro [on\|off]` | 课堂模式开关与时长配置 |
+| `uv run ai-teacher provider` | 查看/切换模型服务（OpenAI 兼容端点） |
 | `uv run ai-teacher history` | 列出最近的会话 |
-| `uv run python -m tests.test_e2e` | 端到端自测（299 项，不联网） |
+| `uv run python -m tests.test_e2e` | 端到端自测（335 项，不联网） |
 | `uv run python -m tests.test_gui` | GUI 冒烟测试（70 项，不联网） |
 | `uv run python -m tests.test_no_network` | 跑上面两套并验证**零网络访问**（双击 `test.bat` 即此） |
 
@@ -172,7 +203,7 @@ finish_reason: 'length'   completion_tokens: 48   reasoning_tokens: 48
 2. 断言测试进程读到的 key 确实为空，防止有人删掉隔离层。
 3. `tests/test_no_network.py` 劫持 `socket.connect`，跑完整套件后断言**出站连接次数为 0**。这是最硬的一层——直接证明没有任何数据包离开本机。
 
-验证结果：e2e 299 项 + GUI 77 项全部通过，出站连接 **0 次**。
+验证结果：e2e 335 项 + GUI 77 项全部通过，出站连接 **0 次**。
 
 > 这一点很重要，因为 GUI 测试的 `_start()` 会真的起一个监控线程。若摄像头检测不到人脸但画面静止（最常见的「安静看书」场景），L0 会返回 SUSPECT 从而走到 L1 判定——**没有隔离层就会用真实 key 真发请求并扣费**。
 
@@ -400,7 +431,7 @@ ai_teacher/
 └── db.py        SQLite 记录
 tests/
 ├── isolation.py       测试隔离层（屏蔽真实 key，禁止网络）
-├── test_e2e.py  端到端自测（299 项，不联网）
+├── test_e2e.py  端到端自测（335 项，不联网）
 ├── test_gui.py  GUI 冒烟测试（77 项，不联网）
 └── test_no_network.py 零网络访问验证（test.bat 跑这个）
 run_gui.bat / run_cli.bat / setup.bat / test.bat
